@@ -1,0 +1,197 @@
+'''各个表的各个数据字段数据示例'''
+
+{
+    'hydjjg':{
+        'name': '福田区民政局婚姻登记处',
+        'address': '福田区农园路30号香蜜公园西门',
+        '受理办证时间': '周一至周日上午9：00—11：30，周一至周五下午2：00—5：30，政府法定节假日“五一”“十一”“元旦”假期当日照常上班一天(政府其它法定节假日除外)',
+        '预约网址': 'https://www.gdhy.gov.cn/',
+        '服务电话': '0755-82520520',
+    },
+    'gnjmsydjjg': {
+        'name': '福田区民政局',
+        'address': '福田区福民路123号区机关大楼16楼',
+        '受理办证时间': '周一至周五上午9：00—12：00，下午14：00—18：00（政府法定节假日除外）',
+        '服务电话': '0755-82918289',
+    },
+    'hqgatjmsydjjg': {
+        'name': '深圳市民政局（儿童福利处）',
+        'address': '罗湖区笋岗路12号中民时代广场A座15楼1518A室',
+        '受理办证时间': '周一至周五上午9：00—12：00，下午14：00—18：00（政府法定节假日除外）',
+        '服务电话': '0755-25624930',
+    },
+    'jzz': {
+        'name': '深圳市救助管理站',
+        '地址': '罗湖区北环大道1032号'
+    },
+    'wcnrshbhsd': {
+        'name': '深圳市宝安区未成年人救助保护中心',
+        'address': '深圳市宝安区西乡街道前进二路宝田工业区第43栋',
+        '办公电话': '0755-29601352',
+    },
+    'cscs': {
+        'name': '鹏城慈善创益空间（市慈善超市）',
+        'address': '深圳市罗湖区笋岗东路12号中民时代广场B座一楼',
+        '办公电话': '0755-25831639',
+    },
+    'sqlnrrjzlzx': {
+        'name': '园东社区长者服务站',
+        '所属区': '福田区',
+        'address': '深圳市福田区园岭东路5号',
+        '性质': '公建民营',
+        '办公电话': '13809882452',
+    },
+    'zzft': {
+        'name': '福田区梅林街道面点王（梅林分店）长者助餐服务点',
+        '所属区': '福田区',
+        'address': '深圳市福田区梅林一村5区103号（中国银行梅丽支行隔壁）',
+        '联系电话': '13692176889',
+        '类型': '助餐点',
+    },
+    'jzjsd': {
+        'name': '深圳市居民家庭经济状况核对中心（深圳市社会捐助中心）',
+        'address': '深圳市福田区八卦三路531栋一楼',
+        '办公电话': '0755-26629155',
+    },
+    'bzfwdw': {
+        'name': '深圳市殡葬服务中心',
+        'address': '深圳市龙岗区龙岗大道布吉段3031号',
+        '办公电话': '0755-28755134',
+    },
+    'jyxgm': {
+        'name': '深圳大鹏湾华侨墓园',
+        '所属区': '盐田区',
+        'address': '盐田区梅沙街道盐梅路5号',
+        '办公电话': '0755-25036302',
+    },
+    'gyxgm': {
+        'name': '追思苑（骨灰楼）',
+        '所属区': '市级',
+        'address': '龙岗区龙岗大道布吉段3031号（深圳市殡葬服务中心内）',
+        '办公电话': '0755-89575844',
+    },
+    'yljg': {
+        'name': '深圳市社会福利服务指导中心社会福利安置院（市老人颐养院）',
+        '所属区': '市级',
+        '性质': '公办',
+        '地址': '龙华区观澜街道观光路1310-1号',
+        '床位': 300,
+        '护理型床位': 300,
+        '办公电话': '0755-21017023',
+    },
+    'etfljg': {
+        'name': '深圳市社会福利服务指导中心（简称"市福利中心"）',
+        'address': '深圳市龙华区观澜观光路北侧1310-1号',
+        '办公电话': '0755-83311126',
+    },
+    'xzqhgkb': {
+        'name': '福田区行政区划信息',
+        '街道办数量': 10,
+        '街道办名称': '南园、园岭、福田、沙头、香蜜湖、梅林、莲花、华富、华强北、福保',
+    },
+    'sggw': {
+        'name': '南园街道社会工作服务站',
+        '所属区': '福田区',
+        '办公地址': '深圳市福田区红荔路2002号园岭大厦404室',
+        '办公电话': '0755-82892515',
+    },
+    'jsshjzkwfw': {
+        'name': '食品类',
+        '要求': '保质期需6个月以上、符合卫生质检标准',
+    },
+}
+
+
+
+
+'''各个页面对应的表名、表名描述'''
+{
+            # point名称: {分类ID, 描述, 表名}
+            'hydjjg': {
+                'categoryId': 23436,
+                'description': '婚姻登记机关名单',
+                'table_name': 'marriage_registration_agencies'
+            },
+            'gnjmsydjjg': {
+                'categoryId': 23435,
+                'description': '国内居民收养登记机关名单',
+                'table_name': 'domestic_adoption_agencies'
+            },
+            'hqgatjmsydjjg': {
+                'categoryId': 23434,
+                'description': '华侨、港澳台居民收养登记机关名单',
+                'table_name': 'overseas_adoption_agencies'
+            },
+            'jzz': {
+                'categoryId': 23433,
+                'description': '救助站名单',
+                'table_name': 'rescue_stations'
+            },
+            'wcnrshbhsd': {
+                'categoryId': 23432,
+                'description': '未成年人社会保护试点名单',
+                'table_name': 'minor_protection_pilots'
+            },
+            'cscs': {
+                'categoryId': 23431,
+                'description': '慈善超市名单',
+                'table_name': 'charity_supermarkets'
+            },
+            'sqlnrrjzlzx': {
+                'categoryId': 23430,
+                'description': '社区老年人日间照料中心名单',
+                'table_name': 'community_elderly_care_centers'
+            },
+            'zzft': {
+                'categoryId': 103605,
+                'description': '深圳市长者饭堂名册',
+                'table_name': 'elderly_dining_halls'
+            },
+            'jzjsd': {
+                'categoryId': 23427,
+                'description': '捐助接收点名单',
+                'table_name': 'donation_receiving_points'
+            },
+            'bzfwdw': {
+                'categoryId': 23426,
+                'description': '殡葬服务单位名单',
+                'table_name': 'funeral_service_units'
+            },
+            'jyxgm': {
+                'categoryId': 23425,
+                'description': '经营性公墓名单',
+                'table_name': 'commercial_cemeteries'
+            },
+            'gyxgm': {
+                'categoryId': 23424,
+                'description': '公益性公墓名单',
+                'table_name': 'public_welfare_cemeteries'
+            },
+            'yljg': {
+                'categoryId': 23422,
+                'description': '养老机构名单',
+                'table_name': 'elderly_care_institutions'
+            },
+            'etfljg': {
+                'categoryId': 23421,
+                'description': '儿童福利服务机构名单',
+                'table_name': 'children_welfare_institutions'
+            },
+            'xzqhgkb': {
+                'categoryId': 23419,
+                'description': '行政区划概况表',
+                'table_name': 'administrative_divisions'
+            },
+            'sggw': {
+                'categoryId': 23416,
+                'description': '社工岗位名单',
+                'table_name': 'social_worker_positions'
+            },
+            'jsshjzkwfw': {
+                'categoryId': 23414,
+                'description': '接收社会捐赠款物范围',
+                'table_name': 'donation_receiving_scope'
+            },
+        }
+
+
