@@ -1,6 +1,6 @@
 """
-数据库管理模块
-负责数据库操作的高级封装，与表结构模块集成，提供线程安全的数据访问
+数据库管理模块 - 优化版
+修复了重复数据检测逻辑，并优化了字段过滤
 """
 
 from config.database_config import db_config
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 class DatabaseManager:
-    """数据库管理主类"""
+    """优化后的数据库管理类"""
 
     def __init__(self):
         # 操作统计
@@ -38,14 +38,13 @@ class DatabaseManager:
 
     def _init_tables(self):
         """初始化所有数据表"""
-        with self.lock:
-            if not schema_manager.create_all_tables():
-                logger.error("表初始化失败")
-                raise RuntimeError("数据库表初始化失败")
-            logger.info("所有数据表已就绪")
+        if not schema_manager.create_all_tables():
+            logger.error("表初始化失败")
+            raise RuntimeError("数据库表初始化失败")
+        logger.info("所有数据表已就绪")
 
     def save_data(self, table_name: str, data: Dict[str, Any],
-                  key_field: str = 'name') -> bool:
+                 key_field: str = 'name') -> bool:
         """
         保存单条数据到指定表
         自动处理插入或更新
@@ -59,9 +58,10 @@ class DatabaseManager:
             是否保存成功
         """
         try:
-            # 获取表字段
+            # 获取表字段并过滤数据
             table_fields = schema_manager.get_table_fields(table_name)
             if not table_fields:
+                self._update_stat('error')
                 logger.error(f"表 {table_name} 不存在或没有定义字段")
                 return False
 
@@ -69,101 +69,26 @@ class DatabaseManager:
             filtered_data = {k: v for k, v in data.items() if k in table_fields}
 
             # 检查记录是否存在
-            existing = self._check_existing(table_name, key_field, data.get(key_field))
+            key_value = data.get(key_field)
+            if not key_value:
+                self._update_stat('error')
+                logger.error(f"缺少关键字段 {key_field}，无法保存数据")
+                return False
 
-            if existing:
-                # 执行更新
-                return self._update_data(table_name, filtered_data, key_field)
-            else:
-                # 执行插入
-                return self._insert_data(table_name, filtered_data)
+            existing_record = self._get_existing_record(table_name, key_field, key_value)
+
+            if existing_record:
+                return self._update_if_needed(table_name, filtered_data, key_field, existing_record)
+            return self._insert_data(table_name, filtered_data)
 
         except Exception as e:
-            with self.lock:
-                self.stats['error'] += 1
+            self._update_stat('error')
             logger.error(f"保存数据到表 {table_name} 失败: {e}")
             return False
 
-    def _insert_data(self, table_name: str, data: Dict[str, Any]) -> bool:
+    def _get_existing_record(self, table_name: str, key_field: str, key_value: Any) -> Optional[Dict]:
         """
-        插入单条数据
-
-        Args:
-            table_name: 表名
-            data: 数据字典
-
-        Returns:
-            是否插入成功
-        """
-        try:
-            sql = schema_manager.get_insert_sql(table_name)
-            if not sql:
-                return False
-
-            fields = schema_manager.get_table_fields(table_name)
-            values = [data.get(field) for field in fields]
-
-            with db_config.get_cursor() as cursor:
-                cursor.execute(sql, values)
-
-            with self.lock:
-                self.stats['insert'] += 1
-            logger.debug(f"成功插入数据到表 {table_name}")
-            return True
-
-        except Exception as e:
-            with self.lock:
-                self.stats['error'] += 1
-            logger.error(f"插入数据到表 {table_name} 失败: {e}")
-            return False
-
-    def _update_data(self, table_name: str, data: Dict[str, Any],
-                     key_field: str) -> bool:
-        """
-        更新单条数据
-
-        Args:
-            table_name: 表名
-            data: 数据字典
-            key_field: 关键字段名
-
-        Returns:
-            是否更新成功
-        """
-        try:
-            # 获取可更新字段
-            update_fields = [f for f in data.keys() if f != key_field]
-            if not update_fields:
-                with self.lock:
-                    self.stats['duplicate'] += 1
-                logger.debug(f"表 {table_name} 数据无变化，跳过更新")
-                return True
-
-            sql = schema_manager.get_update_sql(table_name, update_fields, key_field)
-            if not sql:
-                return False
-
-            values = [data.get(field) for field in update_fields]
-            values.append(data.get(key_field))  # WHERE条件值
-
-            with db_config.get_cursor() as cursor:
-                cursor.execute(sql, values)
-
-            with self.lock:
-                self.stats['update'] += 1
-            logger.debug(f"成功更新表 {table_name} 的数据")
-            return True
-
-        except Exception as e:
-            with self.lock:
-                self.stats['error'] += 1
-            logger.error(f"更新表 {table_name} 数据失败: {e}")
-            return False
-
-    def _check_existing(self, table_name: str,
-                        key_field: str, key_value: Any) -> bool:
-        """
-        检查记录是否存在
+        获取已存在的记录（如果存在）
 
         Args:
             table_name: 表名
@@ -171,21 +96,69 @@ class DatabaseManager:
             key_value: 关键字段值
 
         Returns:
-            记录是否存在
+            记录字典或None
         """
-        try:
-            sql = f"SELECT 1 FROM `{table_name}` WHERE `{key_field}` = %s LIMIT 1"
+        sql = f"SELECT * FROM `{table_name}` WHERE `{key_field}` = %s LIMIT 1"
+        return db_config.execute_sql(sql, (key_value,), fetch_one=True)
 
-            with db_config.get_cursor() as cursor:
-                cursor.execute(sql, (key_value,))
-                return bool(cursor.fetchone())
-
-        except Exception as e:
-            logger.error(f"检查记录存在性失败: {e}")
+    def _insert_data(self, table_name: str, data: Dict[str, Any]) -> bool:
+        """优化后的插入数据方法"""
+        sql = schema_manager.get_insert_sql(table_name)
+        if not sql:
+            self._update_stat('error')
             return False
 
+        fields = schema_manager.get_table_fields(table_name)
+        values = [data.get(field) for field in fields]
+
+        if db_config.execute_sql(sql, values) > 0:
+            self._update_stat('insert')
+            logger.debug(f"成功插入数据到表 {table_name}")
+            return True
+
+        self._update_stat('error')
+        return False
+
+    def _update_if_needed(self, table_name: str, data: Dict[str, Any],
+                         key_field: str, existing_record: Dict) -> bool:
+        """优化后的更新数据方法，包含实际值比较"""
+        # 确定哪些字段需要更新
+        update_fields = []
+        for field in data:
+            if field == key_field:
+                continue
+
+            # 比较新值和旧值
+            new_value = data.get(field)
+            old_value = existing_record.get(field)
+
+            # 检查值是否实际变化
+            if str(new_value) != str(old_value) if old_value is not None else new_value is not None:
+                update_fields.append(field)
+
+        if not update_fields:
+            self._update_stat('duplicate')
+            logger.debug(f"表 {table_name} 数据无变化，跳过更新")
+            return True
+
+        sql = schema_manager.get_update_sql(table_name, update_fields, key_field)
+        if not sql:
+            self._update_stat('error')
+            return False
+
+        values = [data.get(field) for field in update_fields]
+        values.append(data.get(key_field))
+
+        if db_config.execute_sql(sql, values) > 0:
+            self._update_stat('update')
+            logger.debug(f"成功更新表 {table_name} 的 {len(update_fields)} 个字段")
+            return True
+
+        self._update_stat('error')
+        return False
+
     def batch_save(self, table_name: str, data_list: List[Dict[str, Any]],
-                   key_field: str = 'name') -> Dict[str, int]:
+                  key_field: str = 'name') -> Dict[str, int]:
         """
         批量保存数据
 
@@ -197,73 +170,30 @@ class DatabaseManager:
         Returns:
             操作统计字典
         """
-        stats = {
-            'total': len(data_list),
-            'insert': 0,
-            'update': 0,
-            'error': 0,
-            'duplicate': 0
-        }
+
+        has_error = False
 
         for data in data_list:
             try:
-                # 获取表字段
-                table_fields = schema_manager.get_table_fields(table_name)
-                if not table_fields:
-                    stats['error'] += 1
-                    continue
-
-                # 过滤无效字段
-                filtered_data = {k: v for k, v in data.items() if k in table_fields}
-
-                # 检查记录是否存在
-                existing = self._check_existing(table_name, key_field, data.get(key_field))
-
-                if existing:
-                    # 执行更新
-                    update_fields = [f for f in filtered_data.keys() if f != key_field]
-                    if update_fields:
-                        sql = schema_manager.get_update_sql(table_name, update_fields, key_field)
-                        values = [filtered_data.get(field) for field in update_fields]
-                        values.append(filtered_data.get(key_field))
-
-                        with db_config.get_cursor() as cursor:
-                            cursor.execute(sql, values)
-                        stats['update'] += 1
-                    else:
-                        stats['duplicate'] += 1
-                else:
-                    # 执行插入
-                    sql = schema_manager.get_insert_sql(table_name)
-                    values = [filtered_data.get(field) for field in table_fields]
-
-                    with db_config.get_cursor() as cursor:
-                        cursor.execute(sql, values)
-                    stats['insert'] += 1
-
+                if not self.save_data(table_name, data, key_field):
+                    logger.warning(f"批量保存部分数据失败: {data.get(key_field)}")
             except Exception as e:
-                stats['error'] += 1
+                has_error = True
                 logger.error(f"批量保存数据到表 {table_name} 失败: {e}")
 
-        # 合并全局统计
+        return not has_error
+
+    def _update_stat(self, stat_key: str):
+        """线程安全的统计更新"""
         with self.lock:
-            for k in ['insert', 'update', 'error', 'duplicate']:
-                self.stats[k] += stats[k]
+            self.stats[stat_key] += 1
 
-        return stats
-
+    # 保留原有的统计和表管理方法
     def get_stats(self) -> Dict[str, int]:
-        """
-        获取操作统计
-
-        Returns:
-            统计信息字典
-        """
         with self.lock:
             return self.stats.copy()
 
     def clear_stats(self):
-        """重置统计信息"""
         with self.lock:
             self.stats = {
                 'insert': 0,
@@ -273,53 +203,17 @@ class DatabaseManager:
             }
 
     def table_exists(self, table_name: str) -> bool:
-        """
-        检查表是否存在
-
-        Args:
-            table_name: 表名
-
-        Returns:
-            表是否存在
-        """
-        try:
-            sql = "SHOW TABLES LIKE %s"
-            with db_config.get_cursor() as cursor:
-                cursor.execute(sql, (table_name,))
-                return bool(cursor.fetchone())
-        except Exception as e:
-            logger.error(f"检查表存在性失败: {e}")
-            return False
+        sql = "SHOW TABLES LIKE %s"
+        return bool(db_config.execute_sql(sql, (table_name,), fetch_one=True))
 
     def get_table_info(self, table_name: str) -> Optional[Dict[str, Any]]:
-        """
-        获取表结构信息
-
-        Args:
-            table_name: 表名
-
-        Returns:
-            表结构信息字典或None
-        """
         if not self.table_exists(table_name):
             return None
 
         try:
-            # 获取字段信息
-            sql = f"DESCRIBE `{table_name}`"
-            with db_config.get_cursor() as cursor:
-                cursor.execute(sql)
-                fields = cursor.fetchall()
-
-            # 获取索引信息
-            sql = f"SHOW INDEX FROM `{table_name}`"
-            with db_config.get_cursor() as cursor:
-                cursor.execute(sql)
-                indexes = cursor.fetchall()
-
             return {
-                'fields': fields,
-                'indexes': indexes
+                'fields': db_config.execute_sql(f"DESCRIBE `{table_name}`", fetch_all=True),
+                'indexes': db_config.execute_sql(f"SHOW INDEX FROM `{table_name}`", fetch_all=True)
             }
         except Exception as e:
             logger.error(f"获取表 {table_name} 信息失败: {e}")
@@ -327,7 +221,6 @@ class DatabaseManager:
 
 
 # 全局数据库管理实例
-# 可以直接导入使用: from database.db_manager import db_manager
 db_manager = DatabaseManager()
 
 if __name__ == "__main__":
