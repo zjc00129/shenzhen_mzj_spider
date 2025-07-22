@@ -168,7 +168,7 @@ class DatabaseManager:
             key_field: 用于判断记录是否存在的字段
 
         Returns:
-            操作统计字典
+            是否执行成功
         """
 
         has_error = False
