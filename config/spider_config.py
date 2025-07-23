@@ -51,10 +51,10 @@ class SpiderConfig:
 
         # 滚动加载配置 - 针对所有页面都需要滚动获取的特点优化
         self.scroll_config = {
-            'scroll_pause_time': 3,  # 每次滚动后等待时间(秒)，数据量不大可以稍微快一点
-            'max_scroll_attempts': 5,  # 最大滚动尝试次数，增加以确保获取完整数据
+            # 'scroll_pause_time': 3,  # 每次滚动后等待时间(秒)，数据量不大可以稍微快一点
+            'max_scroll_attempts': 1000,  # 最大滚动总次数，页面较长可根据实际情况进行增加
             'scroll_step': 800,  # 每次滚动的像素距离，适当增大
-            'check_no_more_data_times': 3,  # 检查没有更多数据的次数
+            'check_no_more_data_times': 3,  # 检查没有更多数据的次数，确保获取完整数据
         }
 
         # 请求间隔配置 - 模拟人为访问节奏
@@ -66,9 +66,12 @@ class SpiderConfig:
 
         # 重试配置
         self.retry_config = {
-            'max_retries': 3,  # 最大重试次数
-            'retry_delay': 5,  # 重试间隔(秒)
-            'backoff_factor': 2,  # 退避因子，每次重试延迟翻倍
+            'max_retries': 3,  # 整体最大重试次数
+            'op_max_retries': 2,  # 单个操作最大重试次数
+            'base_delay': 2,  # 基础延迟时间(秒)
+            'max_delay': 60,  # 最大延迟时间(秒)
+            'backoff_factor': 2,  # 指数退避因子
+            'op_retry_delay': 2,  # 操作重试延迟(秒)
         }
 
         # ================================
@@ -186,7 +189,7 @@ class SpiderConfig:
             'content_container': '.content',  # 主要内容容器
             'data_item': '.dataItem',  # 数据项容器
             'title': 'h4.title',  # 标题选择器
-            'load_more_button': '.load-more-button',  # 加载更多按钮（如果有）
+            # 'load_more_button': '.load-more-button',  # 加载更多按钮（如果有）
         }
 
         # ================================
@@ -264,35 +267,35 @@ class SpiderConfig:
         """验证chromedriver路径是否有效"""
         return os.path.exists(self.chromedriver_path)
 
-    def get_chrome_options_list(self):
-        """获取Chrome选项列表"""
-        options = []
-
-        if self.browser_options['headless']:
-            options.append('--headless')
-
-        if self.browser_options['disable_gpu']:
-            options.append('--disable-gpu')
-
-        if self.browser_options['disable_images']:
-            options.append('--blink-settings=imagesEnabled=false')
-
-        if self.browser_options['window_size']:
-            options.append(f"--window-size={self.browser_options['window_size']}")
-
-        if self.browser_options['disable_extensions']:
-            options.append('--disable-extensions')
-
-        if self.browser_options['no_sandbox']:
-            options.append('--no-sandbox')
-
-        if self.browser_options['disable_dev_shm_usage']:
-            options.append('--disable-dev-shm-usage')
-
-        # 添加用户代理
-        options.append(f"--user-agent={self.get_random_user_agent()}")
-
-        return options
+    # def get_chrome_options_list(self):
+    #     """获取Chrome选项列表"""
+    #     options = []
+    #
+    #     if self.browser_options['headless']:
+    #         options.append('--headless')
+    #
+    #     if self.browser_options['disable_gpu']:
+    #         options.append('--disable-gpu')
+    #
+    #     if self.browser_options['disable_images']:
+    #         options.append('--blink-settings=imagesEnabled=false')
+    #
+    #     if self.browser_options['window_size']:
+    #         options.append(f"--window-size={self.browser_options['window_size']}")
+    #
+    #     if self.browser_options['disable_extensions']:
+    #         options.append('--disable-extensions')
+    #
+    #     if self.browser_options['no_sandbox']:
+    #         options.append('--no-sandbox')
+    #
+    #     if self.browser_options['disable_dev_shm_usage']:
+    #         options.append('--disable-dev-shm-usage')
+    #
+    #     # 添加用户代理
+    #     options.append(f"--user-agent={self.get_random_user_agent()}")
+    #
+    #     return options
 
 
 # 全局爬虫配置实例

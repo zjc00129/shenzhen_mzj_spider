@@ -10,6 +10,7 @@ import threading
 import logging
 import time
 from typing import Callable, Any
+from config.spider_config import spider_config
 
 # 配置日志
 logging.basicConfig(level=logging.INFO)
@@ -19,7 +20,8 @@ logger = logging.getLogger(__name__)
 class ThreadPoolManager:
     """线程池管理类"""
 
-    def __init__(self, crawler_pool_size=3, parser_pool_size=3):
+    def __init__(self, crawler_pool_size=spider_config.thread_config.get('crawler_pool_size'),
+                 parser_pool_size=spider_config.thread_config.get('parser_pool_size')):
         """
         初始化线程池管理器
 
@@ -38,12 +40,12 @@ class ThreadPoolManager:
         )
 
         # 任务队列
-        self.crawler_task_queue = Queue()
-        self.parser_task_queue = Queue()
+        self.crawler_task_queue = Queue(maxsize=spider_config.thread_config.get('queue_max_size'))
+        self.parser_task_queue = Queue(maxsize=spider_config.thread_config.get('queue_max_size'))
 
         # 结果队列
-        self.crawler_result_queue = Queue()
-        self.parser_result_queue = Queue()
+        self.crawler_result_queue = Queue(maxsize=spider_config.thread_config.get('queue_max_size'))
+        self.parser_result_queue = Queue(maxsize=spider_config.thread_config.get('queue_max_size'))
 
         # 状态监控
         self.running = False
