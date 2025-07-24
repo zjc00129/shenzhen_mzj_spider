@@ -7,7 +7,6 @@ from config.database_config import db_config
 from database.table_schemas import schema_manager
 import logging
 from typing import List, Dict, Any, Optional
-from queue import Queue
 import threading
 
 # 配置日志
@@ -30,8 +29,6 @@ class DatabaseManager:
         # 线程锁
         self.lock = threading.Lock()
 
-        # 批量操作队列
-        self.batch_queue = Queue(maxsize=1000)
 
         # 初始化表结构
         self._init_tables()

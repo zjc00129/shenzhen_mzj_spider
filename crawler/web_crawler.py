@@ -14,8 +14,7 @@ from config.spider_config import spider_config
 import logging
 import time
 import random
-from data_processor import data_processor
-from database.db_manager import db_manager
+from crawler.data_processor import data_processor
 from utils.thread_pool_manager import thread_pool_manager
 from typing import Dict, List, Any, Optional
 

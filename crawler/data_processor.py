@@ -6,7 +6,6 @@
 import logging
 from typing import Dict, List, Any
 from database.db_manager import db_manager
-from config.spider_config import spider_config
 from bs4 import BeautifulSoup
 import re
 from database.table_schemas import schema_manager

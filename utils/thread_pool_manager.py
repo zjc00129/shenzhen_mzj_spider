@@ -184,30 +184,28 @@ class ThreadPoolManager:
         try:
             result = task_func(*args, **kwargs)
             # self.crawler_result_queue.put(result)
+            with self.lock:
+                self.stats['crawler_tasks_completed'] += 1
             return result
         except Exception as e:
             logger.error(f"爬取任务执行失败: {e}")
             with self.lock:
                 self.stats['errors'] += 1
             return False
-        finally:
-            with self.lock:
-                self.stats['crawler_tasks_completed'] += 1
 
     def _execute_parser_task(self, task_func, *args, **kwargs):
         """执行解析任务"""
         try:
             result = task_func(*args, **kwargs)
             # self.parser_result_queue.put(result)
+            with self.lock:
+                self.stats['parser_tasks_completed'] += 1
             return result
         except Exception as e:
             logger.error(f"解析任务执行失败: {e}")
             with self.lock:
                 self.stats['errors'] += 1
             return False
-        finally:
-            with self.lock:
-                self.stats['parser_tasks_completed'] += 1
 
     def _task_dispatcher(self):
         """任务分发器，从队列中获取任务并提交到线程池"""

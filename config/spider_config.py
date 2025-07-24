@@ -81,6 +81,7 @@ class SpiderConfig:
             'crawler_pool_size': 3,  # 爬取线程池大小
             'parser_pool_size': 3,  # 解析线程池大小
             'queue_max_size': 100,  # 队列最大大小，根据最大1000条数据调整
+            'pool_stop_max_time': 300,  # 线程池停止最大等待时间
         }
 
         # ================================
