@@ -14,7 +14,7 @@ from config.spider_config import spider_config
 import logging
 import time
 import random
-from config.database_config import db_config
+from data_processor import data_processor
 from database.db_manager import db_manager
 from utils.thread_pool_manager import thread_pool_manager
 from typing import Dict, List, Any, Optional
@@ -140,7 +140,7 @@ class WebCrawler:
                 # 5. 保存数据
                 if data_items:
                     thread_pool_manager.submit_parser_task(
-                        self._save_data,
+                        data_processor.process_items,
                         data_items
                     )
                     success = True
@@ -319,36 +319,36 @@ class WebCrawler:
         self.close()
         self._init_driver()
 
-    def _save_data(self, data_items: List[Dict[str, Any]]):
-        """保存数据到数据库"""
-        try:
-            # 这里应该调用data_parser模块进行解析
-            # 但根据开发计划，解析将在单独的模块中完成
-            # 此处仅为保存流程的占位符实现
-
-            # 在实际应用中，这里会调用解析器将item_html解析为结构化数据
-            # 然后使用db_manager保存到数据库
-
-            # 示例: 直接保存原始HTML到数据库 (仅用于演示)
-            for data in data_items:
-                # 在实际应用中，这里应该是解析后的结构化数据
-                structured_data = {
-                    'point': data['point'],
-                    'url': data['url'],
-                    'item_index': data['item_index'],
-                    'raw_html': data['item_html'][:500] + '...'  # 只保存部分
-                }
-
-                # 保存到数据库
-                db_manager.save_data(
-                    self.table_name,
-                    structured_data
-                )
-
-            logger.info(f"成功保存 {len(data_items)} 条数据到数据库")
-
-        except Exception as e:
-            logger.error(f"保存数据失败: {e}")
+    # def _save_data(self, data_items: List[Dict[str, Any]]):
+    #     """保存数据到数据库"""
+    #     try:
+    #         # 这里应该调用data_parser模块进行解析
+    #         # 但根据开发计划，解析将在单独的模块中完成
+    #         # 此处仅为保存流程的占位符实现
+    #
+    #         # 在实际应用中，这里会调用解析器将item_html解析为结构化数据
+    #         # 然后使用db_manager保存到数据库
+    #
+    #         # 示例: 直接保存原始HTML到数据库 (仅用于演示)
+    #         for data in data_items:
+    #             # 在实际应用中，这里应该是解析后的结构化数据
+    #             structured_data = {
+    #                 'point': data['point'],
+    #                 'url': data['url'],
+    #                 'item_index': data['item_index'],
+    #                 'raw_html': data['item_html'][:500] + '...'  # 只保存部分
+    #             }
+    #
+    #             # 保存到数据库
+    #             db_manager.save_data(
+    #                 self.table_name,
+    #                 structured_data
+    #             )
+    #
+    #         logger.info(f"成功保存 {len(data_items)} 条数据到数据库")
+    #
+    #     except Exception as e:
+    #         logger.error(f"保存数据失败: {e}")
 
     def close(self):
         """关闭浏览器驱动"""

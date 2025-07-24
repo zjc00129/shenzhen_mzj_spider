@@ -44,8 +44,8 @@ class ThreadPoolManager:
         self.parser_task_queue = Queue(maxsize=spider_config.thread_config.get('queue_max_size'))
 
         # 结果队列
-        self.crawler_result_queue = Queue(maxsize=spider_config.thread_config.get('queue_max_size'))
-        self.parser_result_queue = Queue(maxsize=spider_config.thread_config.get('queue_max_size'))
+        # self.crawler_result_queue = Queue(maxsize=spider_config.thread_config.get('queue_max_size'))
+        # self.parser_result_queue = Queue(maxsize=spider_config.thread_config.get('queue_max_size'))
 
         # 状态监控
         self.running = False
@@ -144,47 +144,47 @@ class ThreadPoolManager:
             self.stats['parser_tasks_submitted'] += 1
         return True
 
-    def get_crawler_result(self, timeout: float = None) -> Any:
-        """
-        获取爬取任务结果
+    # def get_crawler_result(self, timeout: float = None) -> Any:
+    #     """
+    #     获取爬取任务结果
+    #
+    #     Args:
+    #         timeout: 超时时间（秒）
+    #
+    #     Returns:
+    #         任务结果，超时返回None
+    #     """
+    #     try:
+    #         return self.crawler_result_queue.get(timeout=timeout)
+    #     except Empty:
+    #         return None
 
-        Args:
-            timeout: 超时时间（秒）
-
-        Returns:
-            任务结果，超时返回None
-        """
-        try:
-            return self.crawler_result_queue.get(timeout=timeout)
-        except Empty:
-            return None
-
-    def get_parser_result(self, timeout: float = None) -> Any:
-        """
-        获取解析任务结果
-
-        Args:
-            timeout: 超时时间（秒）
-
-        Returns:
-            任务结果，超时返回None
-        """
-        try:
-            return self.parser_result_queue.get(timeout=timeout)
-        except Empty:
-            return None
+    # def get_parser_result(self, timeout: float = None) -> Any:
+    #     """
+    #     获取解析任务结果
+    #
+    #     Args:
+    #         timeout: 超时时间（秒）
+    #
+    #     Returns:
+    #         任务结果，超时返回None
+    #     """
+    #     try:
+    #         return self.parser_result_queue.get(timeout=timeout)
+    #     except Empty:
+    #         return None
 
     def get_stats(self) -> dict:
         """获取当前统计信息"""
         with self.lock:
             return self.stats.copy()
 
-    def _execute_crawler_task(self, task_func, args, kwargs):
+    def _execute_crawler_task(self, task_func, *args, **kwargs):
         """执行爬取任务"""
         try:
             result = task_func(*args, **kwargs)
-            self.crawler_result_queue.put(result)
-            return True
+            # self.crawler_result_queue.put(result)
+            return result
         except Exception as e:
             logger.error(f"爬取任务执行失败: {e}")
             with self.lock:
@@ -194,12 +194,12 @@ class ThreadPoolManager:
             with self.lock:
                 self.stats['crawler_tasks_completed'] += 1
 
-    def _execute_parser_task(self, task_func, args, kwargs):
+    def _execute_parser_task(self, task_func, *args, **kwargs):
         """执行解析任务"""
         try:
             result = task_func(*args, **kwargs)
-            self.parser_result_queue.put(result)
-            return True
+            # self.parser_result_queue.put(result)
+            return result
         except Exception as e:
             logger.error(f"解析任务执行失败: {e}")
             with self.lock:
@@ -218,14 +218,14 @@ class ThreadPoolManager:
                 if not self.crawler_task_queue.empty():
                     task_func, args, kwargs = self.crawler_task_queue.get(timeout=0.5)
                     self.crawler_pool.submit(
-                        self._execute_crawler_task, task_func, args, kwargs
+                        self._execute_crawler_task, task_func, *args, **kwargs
                     )
 
                 # 分发解析任务
                 if not self.parser_task_queue.empty():
                     task_func, args, kwargs = self.parser_task_queue.get(timeout=0.5)
                     self.parser_pool.submit(
-                        self._execute_parser_task, task_func, args, kwargs
+                        self._execute_parser_task, task_func, *args, **kwargs
                     )
 
                 # 短暂休眠避免CPU空转
@@ -276,9 +276,8 @@ class ThreadPoolManager:
         start_time = time.time()
         while self.running:
             # 检查任务队列是否为空
-            crawler_empty = self.crawler_task_queue.empty() and self.crawler_result_queue.empty()
-            parser_empty = self.parser_task_queue.empty() and self.parser_result_queue.empty()
-
+            crawler_empty = self.crawler_task_queue.empty()
+            parser_empty = self.parser_task_queue.empty()
             # 检查线程池状态
             crawler_idle = self.crawler_pool._work_queue.empty() and not self.crawler_pool._threads
             parser_idle = self.parser_pool._work_queue.empty() and not self.parser_pool._threads
@@ -303,7 +302,10 @@ if __name__ == "__main__":
     # 测试线程池管理模块
 
     # 测试任务函数
+    data=1000
+
     def test_crawler_task(task_id):
+        thread_pool_manager.submit_parser_task(test_parser_task, data)
         logger.info(f"爬取任务 {task_id} 开始执行")
         time.sleep(1)  # 模拟爬取耗时
         return f"爬取结果-{task_id}"
@@ -323,17 +325,17 @@ if __name__ == "__main__":
         thread_pool_manager.submit_crawler_task(test_crawler_task, i)
 
     # 处理爬取结果并提交解析任务
-    for i in range(5):
-        result = thread_pool_manager.get_crawler_result(timeout=5)
-        if result:
-            logger.info(f"收到爬取结果: {result}")
-            thread_pool_manager.submit_parser_task(test_parser_task, result)
+    # for i in range(5):
+    #     result = thread_pool_manager.get_crawler_result(timeout=5)
+    #     if result:
+    #         logger.info(f"收到爬取结果: {result}")
+    #         thread_pool_manager.submit_parser_task(test_parser_task, result)
 
     # 获取解析结果
-    for i in range(5):
-        result = thread_pool_manager.get_parser_result(timeout=5)
-        if result:
-            logger.info(f"收到解析结果: {result}")
+    # for i in range(5):
+    #     result = thread_pool_manager.get_parser_result(timeout=5)
+    #     if result:
+    #         logger.info(f"收到解析结果: {result}")
 
     # 等待所有任务完成
     thread_pool_manager.wait_all_completed(timeout=10)

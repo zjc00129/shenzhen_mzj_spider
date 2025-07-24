@@ -51,7 +51,6 @@ class SpiderConfig:
 
         # 滚动加载配置 - 针对所有页面都需要滚动获取的特点优化
         self.scroll_config = {
-            # 'scroll_pause_time': 3,  # 每次滚动后等待时间(秒)，数据量不大可以稍微快一点
             'max_scroll_attempts': 1000,  # 最大滚动总次数，页面较长可根据实际情况进行增加
             'scroll_step': 800,  # 每次滚动的像素距离，适当增大
             'check_no_more_data_times': 3,  # 检查没有更多数据的次数，确保获取完整数据
@@ -81,7 +80,7 @@ class SpiderConfig:
         self.thread_config = {
             'crawler_pool_size': 3,  # 爬取线程池大小
             'parser_pool_size': 3,  # 解析线程池大小
-            'queue_max_size': 200,  # 队列最大大小，根据最大1000条数据调整
+            'queue_max_size': 100,  # 队列最大大小，根据最大1000条数据调整
         }
 
         # ================================
@@ -208,13 +207,13 @@ class SpiderConfig:
         # 数据处理配置
         # ================================
 
-        self.data_config = {
-            'batch_size': 100,  # 批量处理数据大小，根据数据量1-1000条调整
-            'enable_data_validation': True,  # 是否启用数据验证
-            'skip_duplicates': True,  # 是否跳过重复数据
-            'empty_value_replacement': '',  # 空值替换内容
-            'max_items_per_page': 1000,  # 每页最大数据条数预估
-        }
+        # 默认已全部实现
+        # self.data_config = {
+        #     'batch_size': 100,  # 批量处理数据大小，根据数据量1-1000条调整
+        #     'enable_data_validation': True,  # 是否启用数据验证
+        #     'skip_duplicates': True,  # 是否跳过重复数据
+        #     'empty_value_replacement': '',  # 空值替换内容
+        # }
 
     def get_random_user_agent(self):
         """随机获取用户代理"""
