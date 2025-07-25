@@ -22,8 +22,8 @@ class DatabaseConfig:
 
         self.db_config = {
             'host': 'localhost',  # 数据库主机地址，如果是远程数据库请修改为实际IP
-            'user': 'root',  # 数据库用户名，请修改为你的用户名
-            'password': 'QP285841730',  # 数据库密码，请修改为你的密码
+            'user': 'XXX',  # 数据库用户名，请修改为你的用户名
+            'password': 'XXX',  # 数据库密码，请修改为你的密码
             'database': 'spider',  # 数据库名称，请修改为你要使用的数据库名
             'charset': 'utf8mb4',  # 字符集，建议保持utf8mb4支持中文
             'port': 3306,  # 数据库端口，MySQL默认3306，如有修改请调整
