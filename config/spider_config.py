@@ -78,10 +78,10 @@ class SpiderConfig:
         # ================================
 
         self.thread_config = {
-            'crawler_pool_size': 3,  # 爬取线程池大小
-            'parser_pool_size': 3,  # 解析线程池大小
-            'queue_max_size': 100,  # 队列最大大小，根据最大1000条数据调整
-            'pool_stop_max_time': 300,  # 线程池停止最大等待时间
+            'crawler_pool_size': 5,  # 爬取线程池大小
+            'parser_pool_size': 2,  # 解析线程池大小
+            'queue_max_size': 50,  # 队列最大大小
+            'pool_stop_max_time': 10,  # 线程池停止最大等待时间
         }
 
         # ================================
@@ -197,8 +197,10 @@ class SpiderConfig:
         # ================================
 
         self.log_config = {
-            'log_level': 'INFO',  # 日志级别: DEBUG, INFO, WARNING, ERROR
-            'log_file': 'spider.log',  # 日志文件名
+            'log_level': 'INFO',  # 日志级别: DEBUG, INFO, WARNING, ERROR, CRITICAL
+            'log_dir': 'logs',  # 日志目录
+            'main_log': 'spider_system.log',  # 主日志文件名
+            'error_log': 'spider_errors.log',  # 错误日志文件名
             'log_format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
             'max_log_size': 10 * 1024 * 1024,  # 最大日志文件大小 (10MB)
             'backup_count': 5,  # 保留的日志文件数量

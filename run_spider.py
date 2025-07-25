@@ -7,21 +7,25 @@ import logging
 from main_spider import main_spider
 from config import spider_config, database_config
 from database.table_schemas import schema_manager
+from utils.logger import setup_logger
 
-# 配置日志
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('spider_run.log'),
-        logging.StreamHandler()
-    ]
-)
+
+# 初始化日志系统
+# logging.basicConfig(
+#     level=logging.INFO,
+#     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+#     handlers=[
+#         logging.FileHandler('spider_run.log'),
+#         logging.StreamHandler()
+#     ]
+# )
+setup_logger()
 logger = logging.getLogger(__name__)
 
 
 def initialize_system():
     """初始化系统"""
+
     logger.info("=" * 80)
     logger.info("深圳民政数据采集系统 - 初始化")
     logger.info("=" * 80)

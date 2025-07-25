@@ -8,6 +8,9 @@ from dbutils.pooled_db import PooledDB
 import logging
 from contextlib import contextmanager
 
+# 配置日志
+logger = logging.getLogger(__name__)
+
 
 class DatabaseConfig:
     """数据库配置类"""
@@ -16,9 +19,6 @@ class DatabaseConfig:
         # ================================
         # 请根据你的实际数据库情况修改以下配置
         # ================================
-        # 配置日志
-        logging.basicConfig(level=logging.INFO)
-        self.logger = logging.getLogger(__name__)
 
         self.db_config = {
             'host': 'localhost',  # 数据库主机地址，如果是远程数据库请修改为实际IP
@@ -65,12 +65,12 @@ class DatabaseConfig:
                     cursor.execute("SELECT 1")
                     result = cursor.fetchone()
                     if result:
-                        self.logger.info("数据库连接池初始化成功")
+                        logger.info("数据库连接池初始化成功")
                     else:
                         raise Exception("数据库连接测试失败")
 
         except Exception as e:
-            self.logger.error(f"数据库连接池初始化失败: {e}")
+            logger.error(f"数据库连接池初始化失败: {e}")
             raise
 
     @contextmanager
@@ -88,7 +88,7 @@ class DatabaseConfig:
         except Exception as e:
             if conn:
                 conn.rollback()
-            self.logger.error(f"数据库操作异常: {e}")
+            logger.error(f"数据库操作异常: {e}")
             raise
         finally:
             if conn:
@@ -109,7 +109,7 @@ class DatabaseConfig:
                 conn.commit()
             except Exception as e:
                 conn.rollback()
-                self.logger.error(f"数据库操作异常: {e}")
+                logger.error(f"数据库操作异常: {e}")
                 raise
             finally:
                 cursor.close()
@@ -139,7 +139,7 @@ class DatabaseConfig:
                     return cursor.rowcount
 
         except Exception as e:
-            self.logger.error(f"执行SQL失败: {sql}, 参数: {params}, 错误: {e}")
+            logger.error(f"执行SQL失败: {sql}, 参数: {params}, 错误: {e}")
             raise
 
     def execute_many(self, sql, params_list):
@@ -158,7 +158,7 @@ class DatabaseConfig:
                 return cursor.executemany(sql, params_list)
 
         except Exception as e:
-            self.logger.error(f"批量执行SQL失败: {sql}, 错误: {e}")
+            logger.error(f"批量执行SQL失败: {sql}, 错误: {e}")
             raise
 
     def test_connection(self):
@@ -167,10 +167,10 @@ class DatabaseConfig:
             with self.get_cursor() as cursor:
                 cursor.execute("SELECT VERSION()")
                 version = cursor.fetchone()
-                self.logger.info(f"数据库连接正常，版本: {version}")
+                logger.info(f"数据库连接正常，版本: {version}")
                 return True
         except Exception as e:
-            self.logger.error(f"数据库连接测试失败: {e}")
+            logger.error(f"数据库连接测试失败: {e}")
             return False
 
     def create_database_if_not_exists(self, database_name=None):
@@ -193,11 +193,11 @@ class DatabaseConfig:
                 cursor.execute(
                     f"CREATE DATABASE IF NOT EXISTS `{database_name}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
                 conn.commit()
-                self.logger.info(f"数据库 {database_name} 创建成功或已存在")
+                logger.info(f"数据库 {database_name} 创建成功或已存在")
             conn.close()
 
         except Exception as e:
-            self.logger.error(f"创建数据库失败: {e}")
+            logger.error(f"创建数据库失败: {e}")
             raise
 
 

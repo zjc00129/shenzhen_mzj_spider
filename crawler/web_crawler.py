@@ -19,7 +19,6 @@ from utils.thread_pool_manager import thread_pool_manager
 from typing import Dict, List, Any, Optional
 
 # 配置日志
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 

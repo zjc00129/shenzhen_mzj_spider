@@ -11,7 +11,6 @@ import re
 from database.table_schemas import schema_manager
 
 # 配置日志
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 

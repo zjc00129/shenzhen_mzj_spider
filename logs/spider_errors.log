@@ -1,0 +1,2 @@
+2025-07-25 20:41:24,976 - database.db_manager - ERROR - 缺少关键字段 name，无法保存数据
+2025-07-25 20:41:24,976 - crawler.data_processor - ERROR - 保存 sggw 数据项失败: 77

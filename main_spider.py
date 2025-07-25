@@ -12,7 +12,6 @@ from crawler.web_crawler import crawl_point
 from database.db_manager import db_manager
 
 # 配置日志
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
@@ -106,40 +105,35 @@ class MainSpider:
             # 等待一段时间
             time.sleep(10)
 
-    def stop_crawling(self, timeout=spider_config.thread_config.get('pool_stop_max_time', 300)):
+    def stop_crawling(self, timeout=spider_config.thread_config.get('pool_stop_max_time', 10)):
         """停止爬取并清理资源"""
         logger.info("正在停止爬取任务...")
 
-        try:
-            # 先等待所有任务完成（最多5分钟）
-            logger.info("等待所有任务完成...")
-            if thread_pool_manager.wait_all_completed(timeout=timeout):
-                logger.info("所有任务已完成")
-            else:
-                logger.warning(f"等待超时，仍有任务未完成，强制停止")
+        # 先等待所有任务完成（最多10秒）
+        # logger.info("等待所有任务完成...")
+        # if thread_pool_manager.wait_all_completed(timeout=timeout):
+        #     logger.info("所有任务已完成")
+        # else:
+        #     logger.warning(f"等待超时，仍有任务未完成，强制停止")
 
-        except Exception as e:
-            logger.error(f"等待任务完成时出错: {e}")
+        # 停止线程池
+        thread_pool_manager.stop(wait=True)
 
-        finally:
-            # 停止线程池
-            thread_pool_manager.stop(wait=True)
+        # 更新结束时间
+        self.status['end_time'] = time.time()
 
-            # 更新结束时间
-            self.status['end_time'] = time.time()
+        # 记录数据库统计
+        db_stats = db_manager.get_stats()
+        self.status['db_insert'] = db_stats['insert']
+        self.status['db_update'] = db_stats['update']
+        self.status['db_duplicate'] = db_stats['duplicate']
+        self.status['db_error'] = db_stats['error']
 
-            # 记录数据库统计
-            db_stats = db_manager.get_stats()
-            self.status['db_insert'] = db_stats['insert']
-            self.status['db_update'] = db_stats['update']
-            self.status['db_duplicate'] = db_stats['duplicate']
-            self.status['db_error'] = db_stats['error']
+        # 计算耗时
+        duration = self.status['end_time'] - self.status['start_time']
+        self.status['duration'] = duration
 
-            # 计算耗时
-            duration = self.status['end_time'] - self.status['start_time']
-            self.status['duration'] = duration
-
-            logger.info("爬取任务已停止")
+        logger.info("爬取任务已停止")
 
     def generate_report(self) -> Dict[str, Any]:
         """生成爬取报告"""
